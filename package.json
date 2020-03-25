@@ -2,7 +2,7 @@
   "name": "google-books-react",
   "version": "1.0.0",
   "description": "A Google Books React Application",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "build": "cd client && npm run build",
     "install": "cd client && npm install",
@@ -28,8 +28,6 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "if-env": "^1.0.4",
-    "mongoose": "^5.9.6",
-    "@material-ui/core": "^4.9.7",
-    "@material-ui/icons": "^4.9.1"
+    "mongoose": "^5.9.6"
   }
 }
