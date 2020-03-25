@@ -104,8 +104,7 @@ const App = () => {
   }
 
   const handleView = (url)=>{
-    console.log(url)
-    //window.open(url, "_blank")
+    window.open(url, "_blank")
   }
 
   const handleSearchBooks = (event) => {    
@@ -180,16 +179,16 @@ const App = () => {
                 type="text"
                 name="searchText"
                 value={itemState.searchText}
-                onChange={handleInputChange}
+                onChange={()=>handleInputChange}
               />
-              <IconButton onClick={handleSearchBooks}>
+              <IconButton onClick={()=>handleSearchBooks}>
                 <SearchIcon />
               </IconButton>
             </div>
           </Toolbar>
         </AppBar>
 
-        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={handleChange('searchResultsPanel')}>
+        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={()=>handleChange('searchResultsPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="searchResultsPanelbh-content"
@@ -209,7 +208,7 @@ const App = () => {
                     image={searchItem.thumbnail}
                    /> 
                   <CardActions disableSpacing>
-                    <IconButton aria-label="View" key={searchItem.id} onClick={handleView( searchItem.previewLink )} >
+                    <IconButton aria-label="View" key={searchItem.id} onClick={()=>handleView( searchItem.previewLink )} >
                       <PageviewIcon />
                     </IconButton>
                     <IconButton aria-label="Save">
@@ -240,7 +239,7 @@ const App = () => {
           </ExpansionPanelDetails>
         </ExpansionPanel>
 
-        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
+        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={()=>handleChange('savedBooksPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="savedBooksPanelbh-content"
