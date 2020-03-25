@@ -15,7 +15,6 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel'
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails'
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary'
 import Card from '@material-ui/core/Card'
-import CardActionArea from '@material-ui/core/CardActionArea'
 import CardHeader from '@material-ui/core/CardHeader';
 import CardMedia from '@material-ui/core/CardMedia';
 import CardContent from '@material-ui/core/CardContent';
@@ -104,6 +103,9 @@ const App = () => {
     setExpanded(isExpanded ? panel : false);
   }
 
+  const handleView = (url)=>{
+    window.open(url, "_blank")
+  }
 
   const handleSearchBooks = (event) => {    
     event.preventDefault()
@@ -122,7 +124,6 @@ const App = () => {
           {
             thumbnail = element.volumeInfo.imageLinks.thumbnail
           }
-          console.log(thumbnail)
           let bookItem = {
             id: element.id,
             title: element.volumeInfo.title,
@@ -187,7 +188,7 @@ const App = () => {
           </Toolbar>
         </AppBar>
 
-        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={handleChange('searchResultsPanel')}>
+        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={()=>handleChange('searchResultsPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="searchResultsPanelbh-content"
@@ -200,12 +201,14 @@ const App = () => {
             <Paper variant="outlined" square>
               {itemState.searchDisplayItems.map(searchItem => (
                 
+                
+                  
                 <Card key={searchItem.id} className={classes.root} variant="outlined">
                    <CardMedia className={classes.media}
                     image={searchItem.thumbnail}
                    /> 
                   <CardActions disableSpacing>
-                    <IconButton aria-label="View">
+                    <IconButton aria-label="View" key={searchItem.id} onClick={()=>handleView( searchItem.previewLink )} >
                       <PageviewIcon />
                     </IconButton>
                     <IconButton aria-label="Save">
@@ -214,9 +217,9 @@ const App = () => {
                   </CardActions>
                   <CardHeader                    
                     title={searchItem.title}
-                    subheader= <Typography>Authors: {searchItem.authors.map(author=>(
+                    subheader= <div>Authors: {searchItem.authors.map(author=>(
                       <Typography key={author}>{author}</Typography>
-                    ))}</Typography>
+                    ))}</div>
                   />
                   <CardContent>
                 
@@ -227,6 +230,8 @@ const App = () => {
                   
                   </CardContent>
               </Card>
+              
+                
               ))
               }
               
@@ -234,7 +239,7 @@ const App = () => {
           </ExpansionPanelDetails>
         </ExpansionPanel>
 
-        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
+        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={()=>handleChange('savedBooksPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="savedBooksPanelbh-content"
