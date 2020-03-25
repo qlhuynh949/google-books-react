@@ -23,6 +23,9 @@ import PageviewIcon from '@material-ui/icons/Pageview';
 import Paper from '@material-ui/core/Paper';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import axios from 'axios'
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
@@ -81,6 +84,9 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const Alert=(props)=> {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const App = () => {
 
@@ -88,8 +94,9 @@ const App = () => {
     items: [],
     searchText: '',
     searchDisplayItems:[]
-
   })
+
+  const [open, setOpen] = React.useState(false);
 
   const handleInputChange = ({ target }) => {
     setItemState({ ...itemState, [target.name]: target.value })
@@ -106,6 +113,14 @@ const App = () => {
   const handleView = (url)=>{
     window.open(url, "_blank")
   }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   const handleSearchBooks = (event) => {    
     event.preventDefault()
@@ -125,7 +140,7 @@ const App = () => {
             thumbnail = element.volumeInfo.imageLinks.thumbnail
           }
           let bookItem = {
-            id: element.id,
+            bookID: element.id,
             title: element.volumeInfo.title,
             subtitle:element.volumeInfo.subtitle,
             authors: element.volumeInfo.authors,
@@ -141,6 +156,26 @@ const App = () => {
 
         //watchlist.push(this.state.movie)
         //this.setState({ watchlist, movie: {} })
+      })
+  }
+
+  const handleCreateItem = (item) => {
+    Item.create({
+      bookID: item.bookID,
+      title: item.title,
+      subtitle: item.subtitle,
+      authors: JSON.stringify(item.authors),
+      description: item.description,
+      selfLink: item.selfLink,
+      thumbnail: item.thumbnail,
+      previewLink: item.previewLink
+    })
+      .then(({ data: item }) => {
+        let items = JSON.parse(JSON.stringify(itemState.items))
+        items.push(item)
+        setItemState({ ...itemState, items })
+        setOpen(true);
+
       })
   }
 
@@ -188,7 +223,7 @@ const App = () => {
           </Toolbar>
         </AppBar>
 
-        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={()=>handleChange('searchResultsPanel')}>
+        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={handleChange('searchResultsPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="searchResultsPanelbh-content"
@@ -200,20 +235,23 @@ const App = () => {
           <ExpansionPanelDetails>
             <Paper variant="outlined" square>
               {itemState.searchDisplayItems.map(searchItem => (
-                
-                
-                  
-                <Card key={searchItem.id} className={classes.root} variant="outlined">
+                                
+                <Card key={searchItem.bookID} className={classes.root} variant="outlined">
                    <CardMedia className={classes.media}
                     image={searchItem.thumbnail}
                    /> 
                   <CardActions disableSpacing>
-                    <IconButton aria-label="View" key={searchItem.id} onClick={()=>handleView( searchItem.previewLink )} >
+                    <IconButton aria-label="View" key={searchItem.bookID} onClick={()=>handleView( searchItem.previewLink )} >
                       <PageviewIcon />
                     </IconButton>
-                    <IconButton aria-label="Save">
+                    <IconButton aria-label="Save" onClick={()=>handleCreateItem(searchItem)}>
                       <SaveIcon />
                     </IconButton>
+                    <Snackbar open={open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                      <Alert onClose={handleCloseSnackbar} severity="success">
+                        The book is saved!
+                      </Alert>
+                    </Snackbar>
                   </CardActions>
                   <CardHeader                    
                     title={searchItem.title}
@@ -239,7 +277,7 @@ const App = () => {
           </ExpansionPanelDetails>
         </ExpansionPanel>
 
-        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={()=>handleChange('savedBooksPanel')}>
+        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="savedBooksPanelbh-content"
