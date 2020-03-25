@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import Item from './utils/Item'
 import './App.css'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
@@ -10,8 +11,6 @@ import MenuIcon from '@material-ui/icons/Menu'
 import SearchIcon from '@material-ui/icons/Search'
 import SdStorageIcon from '@material-ui/icons/SdStorage'
 import SaveIcon from '@material-ui/icons/Save'
-
-
 import ExpansionPanel from '@material-ui/core/ExpansionPanel'
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails'
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary'
@@ -76,7 +75,16 @@ const useStyles = makeStyles(theme => ({
 
 const App = () => {
 
-  
+  const [itemState, setItemState] = useState({
+    items: [],
+    searchText: ''
+  })
+
+  const handleInputChange = ({ target }) => {
+    console.log(target)
+    setItemState({ ...itemState, [target.name]: target.value })
+  }
+
   const classes = useStyles()
 
   const [expanded, setExpanded] = React.useState(false)
@@ -85,8 +93,13 @@ const App = () => {
     setExpanded(isExpanded ? panel : false);
   }
 
+  const handleSearchBooks = () => {
+    console.log('SearchBooks')
+    console.log(itemState.searchText)
+  }
+
   return (
- <>
+    <>
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
@@ -101,13 +114,13 @@ const App = () => {
             <Typography className={classes.title} variant="h6" noWrap>
               React Google Book Search
           </Typography>
-          <IconButton>
+            <IconButton>
               <SdStorageIcon />
-          </IconButton>
-          
+            </IconButton>
+
             <div className={classes.search}>
               <div className={classes.searchIcon}>
-                
+
               </div>
               <InputBase
                 placeholder="Search…"
@@ -116,9 +129,13 @@ const App = () => {
                   input: classes.inputInput,
                 }}
                 inputProps={{ 'aria-label': 'search' }}
+                type="text"
+                name="searchText"
+                value={itemState.searchText}
+                onChange={handleInputChange}
               />
-              <IconButton>
-              <SearchIcon/>
+              <IconButton onClick={handleSearchBooks}>
+                <SearchIcon />
               </IconButton>
             </div>
           </Toolbar>
@@ -134,8 +151,8 @@ const App = () => {
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <Typography>
-              
-          </Typography>
+
+            </Typography>
           </ExpansionPanelDetails>
         </ExpansionPanel>
         <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
@@ -151,15 +168,15 @@ const App = () => {
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
             <Typography>
-              
 
-          </Typography>
+
+            </Typography>
           </ExpansionPanelDetails>
         </ExpansionPanel>
 
       </div>
 
- </>
+    </>
   )
 }
 
