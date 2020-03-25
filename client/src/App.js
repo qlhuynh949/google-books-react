@@ -104,6 +104,10 @@ const App = () => {
     setExpanded(isExpanded ? panel : false);
   }
 
+  const handleView = (url)=>{
+    console.log(url)
+    //window.open(url, "_blank")
+  }
 
   const handleSearchBooks = (event) => {    
     event.preventDefault()
@@ -122,7 +126,6 @@ const App = () => {
           {
             thumbnail = element.volumeInfo.imageLinks.thumbnail
           }
-          console.log(thumbnail)
           let bookItem = {
             id: element.id,
             title: element.volumeInfo.title,
@@ -200,12 +203,14 @@ const App = () => {
             <Paper variant="outlined" square>
               {itemState.searchDisplayItems.map(searchItem => (
                 
+                
+                  
                 <Card key={searchItem.id} className={classes.root} variant="outlined">
                    <CardMedia className={classes.media}
                     image={searchItem.thumbnail}
                    /> 
                   <CardActions disableSpacing>
-                    <IconButton aria-label="View">
+                    <IconButton aria-label="View" key={searchItem.id} onClick={handleView( searchItem.previewLink )} >
                       <PageviewIcon />
                     </IconButton>
                     <IconButton aria-label="Save">
@@ -214,9 +219,9 @@ const App = () => {
                   </CardActions>
                   <CardHeader                    
                     title={searchItem.title}
-                    subheader= <Typography>Authors: {searchItem.authors.map(author=>(
+                    subheader= <div>Authors: {searchItem.authors.map(author=>(
                       <Typography key={author}>{author}</Typography>
-                    ))}</Typography>
+                    ))}</div>
                   />
                   <CardContent>
                 
@@ -227,6 +232,8 @@ const App = () => {
                   
                   </CardContent>
               </Card>
+              
+                
               ))
               }
               
