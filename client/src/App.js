@@ -14,9 +14,16 @@ import SaveIcon from '@material-ui/icons/Save'
 import ExpansionPanel from '@material-ui/core/ExpansionPanel'
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails'
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary'
-
+import Card from '@material-ui/core/Card'
+import CardActionArea from '@material-ui/core/CardActionArea'
+import CardHeader from '@material-ui/core/CardHeader';
+import CardMedia from '@material-ui/core/CardMedia';
+import CardContent from '@material-ui/core/CardContent';
+import CardActions from '@material-ui/core/CardActions';
+import PageviewIcon from '@material-ui/icons/Pageview';
+import Paper from '@material-ui/core/Paper';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
-
+import axios from 'axios'
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
@@ -57,6 +64,9 @@ const useStyles = makeStyles(theme => ({
   inputRoot: {
     color: 'inherit',
   },
+  media: {
+    height: 200,width:200
+  },
   inputInput: {
     padding: theme.spacing(1, 1, 1, 0),
     // vertical padding + font size from searchIcon
@@ -77,11 +87,12 @@ const App = () => {
 
   const [itemState, setItemState] = useState({
     items: [],
-    searchText: ''
+    searchText: '',
+    searchDisplayItems:[]
+
   })
 
   const handleInputChange = ({ target }) => {
-    console.log(target)
     setItemState({ ...itemState, [target.name]: target.value })
   }
 
@@ -93,10 +104,46 @@ const App = () => {
     setExpanded(isExpanded ? panel : false);
   }
 
-  const handleSearchBooks = () => {
-    console.log('SearchBooks')
-    console.log(itemState.searchText)
+
+  const handleSearchBooks = (event) => {    
+    event.preventDefault()
+    axios.get(`https://www.googleapis.com/books/v1/volumes?q=${itemState.searchText}+inauthor:${itemState.searchText}&key=${process.env.REACT_APP_GoogleBooks}`)
+      .then(({ data: book }) => {
+        let searchItems =[]
+        
+        let foundBooks = book.items
+        foundBooks.forEach((element)=>{
+          let thumbnail=''
+          if (element.volumeInfo.imageLinks === undefined)
+          {
+            thumbnail = 'https://placehold.it/200x200'
+          }
+          else
+          {
+            thumbnail = element.volumeInfo.imageLinks.thumbnail
+          }
+          console.log(thumbnail)
+          let bookItem = {
+            id: element.id,
+            title: element.volumeInfo.title,
+            subtitle:element.volumeInfo.subtitle,
+            authors: element.volumeInfo.authors,
+            description: element.volumeInfo.description,
+            selfLink: element.selfLink,
+            thumbnail: thumbnail,
+            previewLink: element.volumeInfo.previewLink
+          }
+          searchItems.push(bookItem)
+        })
+        setItemState({ ...itemState, searchDisplayItems: searchItems })
+        setExpanded('searchResultsPanel')
+
+        //watchlist.push(this.state.movie)
+        //this.setState({ watchlist, movie: {} })
+      })
   }
+
+
 
   return (
     <>
@@ -117,7 +164,6 @@ const App = () => {
             <IconButton>
               <SdStorageIcon />
             </IconButton>
-
             <div className={classes.search}>
               <div className={classes.searchIcon}>
 
@@ -140,6 +186,7 @@ const App = () => {
             </div>
           </Toolbar>
         </AppBar>
+
         <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={handleChange('searchResultsPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
@@ -150,11 +197,43 @@ const App = () => {
             <Typography className={classes.secondaryHeading}> - Shows Book Search Results</Typography>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>
-            <Typography>
-
-            </Typography>
+            <Paper variant="outlined" square>
+              {itemState.searchDisplayItems.map(searchItem => (
+                
+                <Card key={searchItem.id} className={classes.root} variant="outlined">
+                   <CardMedia className={classes.media}
+                    image={searchItem.thumbnail}
+                   /> 
+                  <CardActions disableSpacing>
+                    <IconButton aria-label="View">
+                      <PageviewIcon />
+                    </IconButton>
+                    <IconButton aria-label="Save">
+                      <SaveIcon />
+                    </IconButton>
+                  </CardActions>
+                  <CardHeader                    
+                    title={searchItem.title}
+                    subheader= <Typography>Authors: {searchItem.authors.map(author=>(
+                      <Typography key={author}>{author}</Typography>
+                    ))}</Typography>
+                  />
+                  <CardContent>
+                
+                  <Typography>
+                    Description:&nbsp;
+                    {searchItem.description}
+                  </Typography>
+                  
+                  </CardContent>
+              </Card>
+              ))
+              }
+              
+            </Paper>
           </ExpansionPanelDetails>
         </ExpansionPanel>
+
         <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
           <ExpansionPanelSummary
             expandIcon={<ExpandMoreIcon />}
