@@ -179,9 +179,9 @@ const App = () => {
                 type="text"
                 name="searchText"
                 value={itemState.searchText}
-                onChange={()=>handleInputChange}
+                onChange={handleInputChange}
               />
-              <IconButton onClick={()=>handleSearchBooks}>
+              <IconButton onClick={handleSearchBooks}>
                 <SearchIcon />
               </IconButton>
             </div>
