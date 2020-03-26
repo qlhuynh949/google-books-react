@@ -216,6 +216,7 @@ const App = () => {
         let items = JSON.parse(JSON.stringify(itemState.items))
         let newDBItem =
         {
+          id: item._id,
           bookID: item.bookID,
           title: item.title,
           subtitle: item.subtitle,
