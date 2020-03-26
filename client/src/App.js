@@ -1,31 +1,12 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Item from './utils/Item'
 import './App.css'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import IconButton from '@material-ui/core/IconButton'
-import Typography from '@material-ui/core/Typography'
-import InputBase from '@material-ui/core/InputBase'
-import { fade, makeStyles } from '@material-ui/core/styles'
-import MenuIcon from '@material-ui/icons/Menu'
-import SearchIcon from '@material-ui/icons/Search'
-import SdStorageIcon from '@material-ui/icons/SdStorage'
-import SaveIcon from '@material-ui/icons/Save'
-import ExpansionPanel from '@material-ui/core/ExpansionPanel'
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails'
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary'
-import Card from '@material-ui/core/Card'
-import CardHeader from '@material-ui/core/CardHeader';
-import CardMedia from '@material-ui/core/CardMedia';
-import CardContent from '@material-ui/core/CardContent';
-import CardActions from '@material-ui/core/CardActions';
-import PageviewIcon from '@material-ui/icons/Pageview';
-import Paper from '@material-ui/core/Paper';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import axios from 'axios'
-import Snackbar from '@material-ui/core/Snackbar';
-import MuiAlert from '@material-ui/lab/Alert';
-import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
+import { fade, makeStyles } from '@material-ui/core/styles'
+import SearchItemsDisplay from './components/SearchItemsDisplay'
+import SavedItemsDisplay from './components/SavedItemsDisplay'
+import NavBar from './components/NavBar'
+
 
 const App = () => {
 
@@ -87,9 +68,6 @@ const App = () => {
     },
   }));
 
-  const Alert = (props) => {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-  }
 
 
   const [itemState, setItemState] = useState({
@@ -233,156 +211,36 @@ const App = () => {
   }
 
 
-
   return (
     <>
       <div className={classes.root}>
-        <AppBar position="static">
-          <Toolbar>
-            <IconButton
-              edge="start"
-              className={classes.menuButton}
-              color="inherit"
-              aria-label="open drawer"
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography className={classes.title} variant="h6" noWrap>
-              React Google Book Search
-          </Typography>
-            <IconButton onClick={handleSavedItems}>
-              <SdStorageIcon />
-            </IconButton>
-            <div className={classes.search}>
-              <div className={classes.searchIcon}>
+        <NavBar classes={classes}
+          itemState={itemState}
+          handleChange={handleChange}
+          handleInputChange={handleInputChange}
+          handleSavedItems={handleSavedItems}
+          handleSearchBooks={handleSearchBooks}
+        />
 
-              </div>
-              <InputBase
-                placeholder="Search…"
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput,
-                }}
-                inputProps={{ 'aria-label': 'search' }}
-                type="text"
-                name="searchText"
-                value={itemState.searchText}
-                onChange={handleInputChange}
-              />
-              <IconButton onClick={handleSearchBooks}>
-                <SearchIcon />
-              </IconButton>
-            </div>
-          </Toolbar>
-        </AppBar>
+        <SearchItemsDisplay expanded={expanded} 
+          classes={classes}
+          itemState={itemState}
+          handleChange = {handleChange}
+          handleCreateItem={handleCreateItem}
+          handleView={handleView}
+          handleCloseSnackbar={handleCloseSnackbar}
+        />
+        
+        <SavedItemsDisplay expanded={expanded}
+          classes={classes}
+          itemState={itemState}
+          handleChange={handleChange}
+          handleDeleteItem={handleDeleteItem}
+          handleView={handleView}
+        />
 
-        <ExpansionPanel expanded={expanded === 'searchResultsPanel'} onChange={handleChange('searchResultsPanel')}>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="searchResultsPanelbh-content"
-            id="searchResultsPanelbh-header"
-          >
-            <Typography className={classes.heading}>Search Results</Typography>
-            <Typography className={classes.secondaryHeading}> - Shows Book Search Results</Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
-            <Paper variant="outlined" square>
-              {itemState.searchDisplayItems.map(searchItem => (
-
-                <Card key={searchItem.bookID} className={classes.root} variant="outlined">
-                  <CardMedia className={classes.media}
-                    image={searchItem.thumbnail}
-                  />
-                  <CardActions disableSpacing>
-                    <IconButton aria-label="View" key={searchItem.bookID} onClick={() => handleView(searchItem.previewLink)} >
-                      <PageviewIcon />
-                    </IconButton>
-                    <IconButton aria-label="Save" onClick={() => handleCreateItem(searchItem)}>
-                      <SaveIcon />
-                    </IconButton>
-                    <Snackbar open={itemState.itemSnackBar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-                      <Alert onClose={handleCloseSnackbar} severity="success">
-                        The book is saved!
-                      </Alert>
-                    </Snackbar>
-                  </CardActions>
-                  <CardHeader
-                    title={searchItem.title}
-                    subheader= <div>Authors: {searchItem.authors.map(author => (
-                      <Typography key={author}>{author}</Typography>
-                    ))}</div>
-                />
-                <CardContent>
-
-                  <Typography>
-                    Description:&nbsp;
-                    {searchItem.description}
-                  </Typography>
-
-                </CardContent>
-              </Card>
-              
-                
-              ))
-              }
-              
-            </Paper>
-          </ExpansionPanelDetails>
-        </ExpansionPanel>
-
-      <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
-        <ExpansionPanelSummary
-          expandIcon={<ExpandMoreIcon />}
-          aria-controls="savedBooksPanelbh-content"
-          id="savedBooksPanelbh-header"
-        >
-          <Typography className={classes.heading}>Saved Books</Typography>
-          <Typography className={classes.secondaryHeading}>
-            - Shows saved books
-          </Typography>
-        </ExpansionPanelSummary>
-        <ExpansionPanelDetails>
-          <Paper variant="outlined" square>
-            {itemState.items.map(savedItem => (
-
-              <Card key={savedItem.id} className={classes.root} variant="outlined">
-                <CardMedia className={classes.media}
-                  image={savedItem.thumbnail}
-                />
-                <CardActions disableSpacing>
-                  <IconButton aria-label="View" key={savedItem.id} onClick={() => handleView(savedItem.previewLink)} >
-                    <PageviewIcon />
-                  </IconButton>
-                  <IconButton aria-label="Delete" onClick={() => handleDeleteItem(savedItem)}>
-                    <RemoveCircleOutlineIcon />
-                  </IconButton>
-                </CardActions>
-                <CardHeader
-                  title={savedItem.title}
-                  subheader= <div>Authors: {savedItem.authors.map(author => (
-                    <Typography key={author}>{author}</Typography>
-                  ))}</div>
-              />
-              <CardContent>
-
-                <Typography>
-                  Description:&nbsp;
-                    {savedItem.description}
-                </Typography>
-
-              </CardContent>
-              </Card>
-              
-                
-              ))
-              }
-              
-            </Paper>
-          </ExpansionPanelDetails>
-    </ExpansionPanel>
 
       </div >
-
     </>
   )
 }
