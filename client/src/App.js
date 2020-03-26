@@ -26,77 +26,79 @@ import axios from 'axios'
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-  },
-  title: {
-    flexGrow: 1,
-    display: 'none',
-    [theme.breakpoints.up('sm')]: {
-      display: 'block',
-    },
-  },
-  search: {
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: fade(theme.palette.common.white, 0.15),
-    '&:hover': {
-      backgroundColor: fade(theme.palette.common.white, 0.25),
-    },
-    marginLeft: 0,
-    width: '100%',
-    [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing(1),
-      width: 'auto',
-    },
-  },
-  searchIcon: {
-    padding: theme.spacing(0, 2),
-    height: '100%',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inputRoot: {
-    color: 'inherit',
-  },
-  media: {
-    height: 200,width:200
-  },
-  inputInput: {
-    padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
-    paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
-    transition: theme.transitions.create('width'),
-    width: '100%',
-    [theme.breakpoints.up('sm')]: {
-      width: '12ch',
-      '&:focus': {
-        width: '20ch',
-      },
-    },
-  },
-}));
-
-const Alert=(props)=> {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
 
 const App = () => {
+
+  const useStyles = makeStyles(theme => ({
+    root: {
+      flexGrow: 1,
+    },
+    menuButton: {
+      marginRight: theme.spacing(2),
+    },
+    title: {
+      flexGrow: 1,
+      display: 'none',
+      [theme.breakpoints.up('sm')]: {
+        display: 'block',
+      },
+    },
+    search: {
+      position: 'relative',
+      borderRadius: theme.shape.borderRadius,
+      backgroundColor: fade(theme.palette.common.white, 0.15),
+      '&:hover': {
+        backgroundColor: fade(theme.palette.common.white, 0.25),
+      },
+      marginLeft: 0,
+      width: '100%',
+      [theme.breakpoints.up('sm')]: {
+        marginLeft: theme.spacing(1),
+        width: 'auto',
+      },
+    },
+    searchIcon: {
+      padding: theme.spacing(0, 2),
+      height: '100%',
+      position: 'absolute',
+      pointerEvents: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    inputRoot: {
+      color: 'inherit',
+    },
+    media: {
+      height: 200, width: 200
+    },
+    inputInput: {
+      padding: theme.spacing(1, 1, 1, 0),
+      // vertical padding + font size from searchIcon
+      paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+      transition: theme.transitions.create('width'),
+      width: '100%',
+      [theme.breakpoints.up('sm')]: {
+        width: '12ch',
+        '&:focus': {
+          width: '20ch',
+        },
+      },
+    },
+  }));
+
+  const Alert = (props) => {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+  }
+
 
   const [itemState, setItemState] = useState({
     items: [],
     searchText: '',
-    searchDisplayItems:[]
+    searchDisplayItems:[],
+    itemSnackBar:false
   })
 
-  const [open, setOpen] = React.useState(false);
 
   const handleInputChange = ({ target }) => {
     setItemState({ ...itemState, [target.name]: target.value })
@@ -119,17 +121,17 @@ const App = () => {
       return;
     }
 
-    setOpen(false);
+    setItemState({ ...itemState, itemSnackBar: false })
   };
 
   const handleSearchBooks = (event) => {    
     event.preventDefault()
-    axios.get(`https://www.googleapis.com/books/v1/volumes?q=${itemState.searchText}+inauthor:${itemState.searchText}&key=${process.env.REACT_APP_GoogleBooks}`)
+    axios.get(`https://www.googleapis.com/books/v1/volumes?q=${itemState.searchText}&key=${process.env.REACT_APP_GoogleBooks}`)
       .then(({ data: book }) => {
         let searchItems =[]
-        
         let foundBooks = book.items
-        foundBooks.forEach((element)=>{
+        
+          foundBooks.forEach((element)=>{
           let thumbnail=''
           if (element.volumeInfo.imageLinks === undefined)
           {
@@ -151,9 +153,10 @@ const App = () => {
           }
           searchItems.push(bookItem)
         })
+        
         setItemState({ ...itemState, searchDisplayItems: searchItems })
         setExpanded('searchResultsPanel')
-
+       
         //watchlist.push(this.state.movie)
         //this.setState({ watchlist, movie: {} })
       })
@@ -172,9 +175,19 @@ const App = () => {
     })
       .then(({ data: item }) => {
         let items = JSON.parse(JSON.stringify(itemState.items))
-        items.push(item)
-        setItemState({ ...itemState, items })
-        setOpen(true);
+        let newDBItem =
+        {
+          bookID: item.bookID,
+          title: item.title,
+          subtitle: item.subtitle,
+          authors: JSON.parse(JSON.stringify(item.authors)),
+          description: item.description,
+          selfLink: item.selfLink,
+          thumbnail: item.thumbnail,
+          previewLink: item.previewLink
+        }
+        items.push(newDBItem)
+        setItemState({ ...itemState, items, itemSnackBar: true })
 
       })
   }
@@ -247,7 +260,7 @@ const App = () => {
                     <IconButton aria-label="Save" onClick={()=>handleCreateItem(searchItem)}>
                       <SaveIcon />
                     </IconButton>
-                    <Snackbar open={open} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                    <Snackbar open={itemState.itemSnackBar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
                       <Alert onClose={handleCloseSnackbar} severity="success">
                         The book is saved!
                       </Alert>
