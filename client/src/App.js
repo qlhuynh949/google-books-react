@@ -25,7 +25,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import axios from 'axios'
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
-
+import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 
 const App = () => {
 
@@ -95,8 +95,8 @@ const App = () => {
   const [itemState, setItemState] = useState({
     items: [],
     searchText: '',
-    searchDisplayItems:[],
-    itemSnackBar:false
+    searchDisplayItems: [],
+    itemSnackBar: false
   })
 
 
@@ -112,7 +112,7 @@ const App = () => {
     setExpanded(isExpanded ? panel : false);
   }
 
-  const handleView = (url)=>{
+  const handleView = (url) => {
     window.open(url, "_blank")
   }
 
@@ -124,27 +124,54 @@ const App = () => {
     setItemState({ ...itemState, itemSnackBar: false })
   };
 
-  const handleSearchBooks = (event) => {    
+  const handleSavedItems = (event) => {
+    event.preventDefault()
+    Item.read()
+      .then(({ data: items }) => {
+        let displaySavedItems = []
+
+        items.forEach(item => {
+
+          let newDBItem =
+          {
+            id: item._id,
+            bookID: item.bookID,
+            title: item.title,
+            subtitle: item.subtitle,
+            authors: JSON.parse(item.authors),
+            description: item.description,
+            selfLink: item.selfLink,
+            thumbnail: item.thumbnail,
+            previewLink: item.previewLink
+          }
+          displaySavedItems.push(newDBItem)
+
+        })
+        setItemState({ ...itemState, items: displaySavedItems })
+        setExpanded('savedBooksPanel')
+
+      })
+  }
+
+  const handleSearchBooks = (event) => {
     event.preventDefault()
     axios.get(`https://www.googleapis.com/books/v1/volumes?q=${itemState.searchText}&key=${process.env.REACT_APP_GoogleBooks}`)
       .then(({ data: book }) => {
-        let searchItems =[]
+        let searchItems = []
         let foundBooks = book.items
-        
-          foundBooks.forEach((element)=>{
-          let thumbnail=''
-          if (element.volumeInfo.imageLinks === undefined)
-          {
+
+        foundBooks.forEach((element) => {
+          let thumbnail = ''
+          if (element.volumeInfo.imageLinks === undefined) {
             thumbnail = 'https://placehold.it/200x200'
           }
-          else
-          {
+          else {
             thumbnail = element.volumeInfo.imageLinks.thumbnail
           }
           let bookItem = {
             bookID: element.id,
             title: element.volumeInfo.title,
-            subtitle:element.volumeInfo.subtitle,
+            subtitle: element.volumeInfo.subtitle,
             authors: element.volumeInfo.authors,
             description: element.volumeInfo.description,
             selfLink: element.selfLink,
@@ -153,14 +180,26 @@ const App = () => {
           }
           searchItems.push(bookItem)
         })
-        
+
         setItemState({ ...itemState, searchDisplayItems: searchItems })
         setExpanded('searchResultsPanel')
-       
+
         //watchlist.push(this.state.movie)
         //this.setState({ watchlist, movie: {} })
       })
   }
+
+  const handleDeleteItem = (savedItem) => {
+
+    Item.delete(savedItem.id)
+      .then(() => {
+        let items = JSON.parse(JSON.stringify(itemState.items))
+        items = items.filter(item => item.id !== savedItem.id)
+        setItemState({ ...itemState, items })
+      })
+    setItemState({ ...itemState, itemSnackBar: true })
+  }
+
 
   const handleCreateItem = (item) => {
     Item.create({
@@ -180,7 +219,7 @@ const App = () => {
           bookID: item.bookID,
           title: item.title,
           subtitle: item.subtitle,
-          authors: JSON.parse(JSON.stringify(item.authors)),
+          authors: JSON.parse(item.authors),
           description: item.description,
           selfLink: item.selfLink,
           thumbnail: item.thumbnail,
@@ -210,7 +249,7 @@ const App = () => {
             <Typography className={classes.title} variant="h6" noWrap>
               React Google Book Search
           </Typography>
-            <IconButton>
+            <IconButton onClick={handleSavedItems}>
               <SdStorageIcon />
             </IconButton>
             <div className={classes.search}>
@@ -248,16 +287,16 @@ const App = () => {
           <ExpansionPanelDetails>
             <Paper variant="outlined" square>
               {itemState.searchDisplayItems.map(searchItem => (
-                                
+
                 <Card key={searchItem.bookID} className={classes.root} variant="outlined">
-                   <CardMedia className={classes.media}
+                  <CardMedia className={classes.media}
                     image={searchItem.thumbnail}
-                   /> 
+                  />
                   <CardActions disableSpacing>
-                    <IconButton aria-label="View" key={searchItem.bookID} onClick={()=>handleView( searchItem.previewLink )} >
+                    <IconButton aria-label="View" key={searchItem.bookID} onClick={() => handleView(searchItem.previewLink)} >
                       <PageviewIcon />
                     </IconButton>
-                    <IconButton aria-label="Save" onClick={()=>handleCreateItem(searchItem)}>
+                    <IconButton aria-label="Save" onClick={() => handleCreateItem(searchItem)}>
                       <SaveIcon />
                     </IconButton>
                     <Snackbar open={itemState.itemSnackBar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
@@ -266,20 +305,20 @@ const App = () => {
                       </Alert>
                     </Snackbar>
                   </CardActions>
-                  <CardHeader                    
+                  <CardHeader
                     title={searchItem.title}
-                    subheader= <div>Authors: {searchItem.authors.map(author=>(
+                    subheader= <div>Authors: {searchItem.authors.map(author => (
                       <Typography key={author}>{author}</Typography>
                     ))}</div>
-                  />
-                  <CardContent>
-                
+                />
+                <CardContent>
+
                   <Typography>
                     Description:&nbsp;
                     {searchItem.description}
                   </Typography>
-                  
-                  </CardContent>
+
+                </CardContent>
               </Card>
               
                 
@@ -290,26 +329,58 @@ const App = () => {
           </ExpansionPanelDetails>
         </ExpansionPanel>
 
-        <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
-          <ExpansionPanelSummary
-            expandIcon={<ExpandMoreIcon />}
-            aria-controls="savedBooksPanelbh-content"
-            id="savedBooksPanelbh-header"
-          >
-            <Typography className={classes.heading}>Saved Books</Typography>
-            <Typography className={classes.secondaryHeading}>
-              - Shows saved books
+      <ExpansionPanel expanded={expanded === 'savedBooksPanel'} onChange={handleChange('savedBooksPanel')}>
+        <ExpansionPanelSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="savedBooksPanelbh-content"
+          id="savedBooksPanelbh-header"
+        >
+          <Typography className={classes.heading}>Saved Books</Typography>
+          <Typography className={classes.secondaryHeading}>
+            - Shows saved books
           </Typography>
-          </ExpansionPanelSummary>
-          <ExpansionPanelDetails>
-            <Typography>
+        </ExpansionPanelSummary>
+        <ExpansionPanelDetails>
+          <Paper variant="outlined" square>
+            {itemState.items.map(savedItem => (
 
+              <Card key={savedItem.id} className={classes.root} variant="outlined">
+                <CardMedia className={classes.media}
+                  image={savedItem.thumbnail}
+                />
+                <CardActions disableSpacing>
+                  <IconButton aria-label="View" key={savedItem.id} onClick={() => handleView(savedItem.previewLink)} >
+                    <PageviewIcon />
+                  </IconButton>
+                  <IconButton aria-label="Delete" onClick={() => handleDeleteItem(savedItem)}>
+                    <RemoveCircleOutlineIcon />
+                  </IconButton>
+                </CardActions>
+                <CardHeader
+                  title={savedItem.title}
+                  subheader= <div>Authors: {savedItem.authors.map(author => (
+                    <Typography key={author}>{author}</Typography>
+                  ))}</div>
+              />
+              <CardContent>
 
-            </Typography>
+                <Typography>
+                  Description:&nbsp;
+                    {savedItem.description}
+                </Typography>
+
+              </CardContent>
+              </Card>
+              
+                
+              ))
+              }
+              
+            </Paper>
           </ExpansionPanelDetails>
-        </ExpansionPanel>
+    </ExpansionPanel>
 
-      </div>
+      </div >
 
     </>
   )
